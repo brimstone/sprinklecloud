@@ -1,0 +1,9 @@
+[submodule "vendor/github.com/lestrrat-go/apache-logformat"]
+	path = vendor/github.com/lestrrat-go/apache-logformat
+	url = https://github.com/lestrrat-go/apache-logformat
+[submodule "vendor/github.com/lestrrat-go/strftime"]
+	path = vendor/github.com/lestrrat-go/strftime
+	url = https://github.com/lestrrat-go/strftime
+[submodule "vendor/github.com/pkg/errors"]
+	path = vendor/github.com/pkg/errors
+	url = https://github.com/pkg/errors
