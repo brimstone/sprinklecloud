@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"log"
 	"net/http"
 	"os"
@@ -11,11 +12,22 @@ import (
 	apachelog "github.com/lestrrat-go/apache-logformat"
 )
 
-type myHandler struct{}
+type fileHandler struct{}
 
-func (h *myHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	path := path.Join("www", r.Host)
+func (h *fileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	hostparts := strings.Split(r.Host, ":")
+	path := path.Join("www", hostparts[0])
 	if strings.HasPrefix(path, "www") {
+		headers, err := os.Open(path + "/" + r.URL.Path + ".headers")
+		if err == nil {
+			defer headers.Close()
+
+			scanner := bufio.NewScanner(headers)
+			for scanner.Scan() {
+				header := strings.SplitN(scanner.Text(), ":", 2)
+				w.Header().Set(header[0], header[1])
+			}
+		}
 		http.FileServer(http.Dir(path)).ServeHTTP(w, r)
 		return
 	}
@@ -27,7 +39,7 @@ func main() {
 	l, _ := apachelog.New(`%h %l %u %t "%r" %>s %b "%{Referer}i" "%{User-agent}i" "%v"`)
 	s := &http.Server{
 		Addr:           ":8080",
-		Handler:        l.Wrap(&myHandler{}, os.Stderr),
+		Handler:        l.Wrap(&fileHandler{}, os.Stderr),
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
